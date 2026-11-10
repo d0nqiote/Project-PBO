@@ -130,7 +130,7 @@ Nilai kolom enum:
 
 ```mermaid
 erDiagram
-    PENGGUNA ||--o{ PESANAN : mencatat
+    PENJUAL ||--o{ PESANAN : mencatat
     PELANGGAN ||--o{ PESANAN : memesan
     PESANAN ||--|{ DETAIL_PESANAN : berisi
     PRODUK ||--o{ DETAIL_PESANAN : dipesan
