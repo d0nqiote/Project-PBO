@@ -136,36 +136,7 @@ erDiagram
     PRODUK ||--o{ DETAIL_PESANAN : dipesan
 ```
 
-## 7. Cara Menjalankan
-
-1. Pasang **JDK**, **NetBeans**, dan **MySQL** (bisa lewat XAMPP).
-2. Jalankan MySQL, lalu import `yummy_risol.sql` lewat phpMyAdmin atau MySQL Workbench.
-3. Buka proyek di NetBeans.
-4. Tambahkan library **MySQL Connector/J** (file JAR) ke proyek: klik kanan *Libraries* > *Add JAR/Folder*.
-5. Sesuaikan URL, username, dan password database di kelas `Koneksi`.
-6. Jalankan kelas `Main`.
-
-Akun contoh (dari data awal):
-
-| Username | Password | Peran |
-|---|---|---|
-| `admin` | `admin123` | Admin |
-| `kasir` | `kasir123` | Kasir |
-
-> Ganti password sebelum aplikasi dipakai pemilik sebenarnya.
-
-## 8. Rencana Progress Mingguan
-
-| Minggu | Target | Bahan presentasi |
-|---|---|---|
-| 1 | Wawancara pemilik, finalisasi ide dan fitur | Ide proyek dan daftar fitur |
-| 2 | Database dan rancangan kelas | Tabel database dan diagram kelas |
-| 3 | Koneksi database, kelas model, dan layar Login | Demo login dan koneksi |
-| 4 | Kelola Produk dan Pelanggan | Demo CRUD |
-| 5 | Buat Pesanan dan Laporan | Demo transaksi dan laporan |
-| 6 | Pengujian dan perapihan | Demo aplikasi lengkap |
-
-## 9. Anggota Kelompok
+## 7. Anggota Kelompok
 
 | Nama | NPM |
 |---|---|
