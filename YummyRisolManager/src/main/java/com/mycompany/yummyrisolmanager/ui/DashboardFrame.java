@@ -414,9 +414,9 @@ public class DashboardFrame extends JFrame {
         btnDashboard.addActionListener(e -> muatData());
         btnProduk.addActionListener(e -> Menu.pindahKe("Produk", peran, this));
         btnPelanggan.addActionListener(e -> Menu.pindahKe("Pelanggan", peran, this));
-        btnPesanan.addActionListener(e -> tampilkanBelumTersedia("Buat Pesanan"));
-        btnLaporan.addActionListener(e -> tampilkanBelumTersedia("Laporan Penjualan"));
-        btnBuatPesanan.addActionListener(e -> tampilkanBelumTersedia("Buat Pesanan"));
+        btnPesanan.addActionListener(e -> Menu.pindahKe("Pesanan", peran, this));
+        btnLaporan.addActionListener(e -> Menu.pindahKe("Laporan", peran, this));
+        btnBuatPesanan.addActionListener(e -> Menu.pindahKe("Pesanan", peran, this));
         btnKeluar.addActionListener(e -> keluar());
     }
 

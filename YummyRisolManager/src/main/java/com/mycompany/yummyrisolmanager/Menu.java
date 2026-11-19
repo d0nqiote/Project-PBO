@@ -33,6 +33,8 @@ public class Menu {
             case "Dashboard" -> new DashboardFrame(peran);
             case "Produk" -> new ProdukFrame(peran);
             case "Pelanggan" -> new PelangganFrame(peran);
+            case "Pesanan" -> new PesananFrame(peran);
+            case "Laporan" -> new LaporanFrame(peran);
             default -> null;
         };
 
