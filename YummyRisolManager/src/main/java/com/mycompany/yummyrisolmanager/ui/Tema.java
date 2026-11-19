@@ -39,17 +39,30 @@ public class Tema {
      * kalau tidak ada pakai Segoe UI.
      */
     private static String pilihNamaFont() {
-        String nama = "Segoe UI";
-        try (InputStream in = Tema.class.getResourceAsStream("/fonts/Inter-Regular.ttf")) {
-            if (in != null) {
-                Font inter = Font.createFont(Font.TRUETYPE_FONT, in);
-                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(inter);
-                nama = inter.getFamily();
+        String nama = null;
+        for (String berkas : new String[]{"/fonts/PlusJakartaSans-Regular.ttf", "/fonts/PlusJakartaSans-bold.ttf"}) {
+            try (InputStream in = Tema.class.getResourceAsStream(berkas)) {
+                if (in != null) {
+                    Font f = Font.createFont(Font.TRUETYPE_FONT, in);
+                    GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(f);
+                    nama = f.getFamily();
+                }
+            } catch (Exception e) {
+                System.out.println("Font tidak bisa dimuat: " + e.getMessage());
             }
-        } catch (Exception e) {
-            System.out.println("Font Inter tidak bisa dimuat: " + e.getMessage());
         }
-        return nama;
+        if (nama != null) {
+            return nama;
+        }
+        // Poppins tidak ada: pakai font sistem pertama yang tersedia
+        java.util.Set<String> ada = new java.util.HashSet<>(java.util.Arrays.asList(
+                GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames()));
+        for (String calon : new String[]{"Segoe UI", "Helvetica Neue", "Arial"}) {
+            if (ada.contains(calon)) {
+                return calon;
+            }
+        }
+        return Font.SANS_SERIF;
     }
 
     public static Font font(int gaya, int ukuran) {

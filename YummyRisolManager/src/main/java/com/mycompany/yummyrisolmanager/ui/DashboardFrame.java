@@ -382,7 +382,7 @@ public class DashboardFrame extends JFrame {
     }
 
     private String buatTeksPeringatan(List<String> menipis) {
-        return "⚠ Stok di bawah minimum: " + String.join(", ", menipis) + " – segera produksi ulang";
+        return "Stok di bawah minimum: " + String.join(", ", menipis) + " – segera produksi ulang";
     }
 
     private String[] buatLabelHari(int jumlah) {
