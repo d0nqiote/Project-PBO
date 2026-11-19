@@ -35,6 +35,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
+import com.mycompany.yummyrisolmanager.Menu;
 
 public class DashboardFrame extends JFrame {
 
@@ -411,8 +412,8 @@ public class DashboardFrame extends JFrame {
 
     private void pasangAksiTombol() {
         btnDashboard.addActionListener(e -> muatData());
-        btnProduk.addActionListener(e -> tampilkanBelumTersedia("Kelola Produk"));
-        btnPelanggan.addActionListener(e -> tampilkanBelumTersedia("Kelola Pelanggan"));
+        btnProduk.addActionListener(e -> Menu.pindahKe("Produk", peran, this));
+        btnPelanggan.addActionListener(e -> Menu.pindahKe("Pelanggan", peran, this));
         btnPesanan.addActionListener(e -> tampilkanBelumTersedia("Buat Pesanan"));
         btnLaporan.addActionListener(e -> tampilkanBelumTersedia("Laporan Penjualan"));
         btnBuatPesanan.addActionListener(e -> tampilkanBelumTersedia("Buat Pesanan"));

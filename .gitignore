@@ -1,1 +1,4 @@
 /YummyRisolManager/target/
+.DS_Store
+*.zip
+target/
