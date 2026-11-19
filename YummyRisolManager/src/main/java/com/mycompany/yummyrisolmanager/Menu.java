@@ -7,6 +7,8 @@ import com.mycompany.yummyrisolmanager.ui.LoginFrame;
 import com.mycompany.yummyrisolmanager.ui.PelangganFrame;
 import com.mycompany.yummyrisolmanager.ui.ProdukFrame;
 import com.mycompany.yummyrisolmanager.ui.Tema;
+import com.mycompany.yummyrisolmanager.ui.LaporanFrame;
+import com.mycompany.yummyrisolmanager.ui.PesananFrame;
 import java.util.Collections;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
