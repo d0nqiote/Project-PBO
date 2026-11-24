@@ -14,15 +14,19 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 
@@ -37,10 +41,11 @@ public class LaporanFrame extends FrameDasar {
     private static final DateTimeFormatter FORMAT_TANGGAL
             = DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.forLanguageTag("id-ID"));
 
+    /** Hanya Admin yang boleh mengubah status; kolom lain tidak bisa diedit. */
     private final DefaultTableModel modelTabel = new DefaultTableModel(KOLOM, 0) {
         @Override
         public boolean isCellEditable(int baris, int kolom) {
-            return false;
+            return kolom == KOLOM_STATUS && peran.equalsIgnoreCase("Admin");
         }
     };
     private final JTable tabel = new JTable(modelTabel);
@@ -52,9 +57,18 @@ public class LaporanFrame extends FrameDasar {
     /** Tanggal untuk tiap item combo. Indeks 0 = "Semua tanggal" (null). */
     private List<LocalDate> tanggalPilihan = new ArrayList<>();
 
+    /** Id pesanan dan status (huruf besar, seperti di database) untuk tiap baris tabel. */
+    private final List<Integer> idBaris = new ArrayList<>();
+    private final List<String> statusBaris = new ArrayList<>();
+
     public LaporanFrame(String peran) {
         super(peran, "Laporan", "Laporan Penjualan");
         pasangKonten(buatIsi());
+        modelTabel.addTableModelListener(e -> {
+            if (e.getType() == TableModelEvent.UPDATE && e.getColumn() == KOLOM_STATUS) {
+                simpanStatus(e.getFirstRow());
+            }
+        });
         muatTanggal();
         muatLaporan();
     }
@@ -135,15 +149,33 @@ public class LaporanFrame extends FrameDasar {
         JScrollPane scroll = Komponen.gayakanTabel(tabel);
         tabel.setRowSelectionAllowed(false);
         tabel.getColumnModel().getColumn(KOLOM_STATUS).setCellRenderer(new RendererStatus());
+        tabel.getColumnModel().getColumn(KOLOM_STATUS).setCellEditor(buatEditorStatus());
         int[] lebar = {70, 110, 130, 100, 110, 100};
         for (int i = 0; i < lebar.length; i++) {
             tabel.getColumnModel().getColumn(i).setPreferredWidth(lebar[i]);
         }
 
+        JPanel atas = new JPanel(new BorderLayout());
+        atas.setOpaque(false);
+        atas.add(Komponen.label("Riwayat pesanan", 16, Font.BOLD, Tema.COKELAT_GELAP), BorderLayout.WEST);
+        if (peran.equalsIgnoreCase("Admin")) {
+            atas.add(Komponen.label("Klik status untuk mengubahnya", 12, Font.PLAIN, Tema.TEKS_ABU),
+                    BorderLayout.EAST);
+        }
+
         PanelBulat kartu = Komponen.kartu(16, 20, 16, 20);
-        kartu.add(Komponen.label("Riwayat pesanan", 16, Font.BOLD, Tema.COKELAT_GELAP), BorderLayout.NORTH);
+        kartu.add(atas, BorderLayout.NORTH);
         kartu.add(scroll, BorderLayout.CENTER);
         return kartu;
+    }
+
+    /** Kotak pilihan Baru / Diproses / Selesai yang muncul saat sel status diklik. */
+    private DefaultCellEditor buatEditorStatus() {
+        JComboBox<String> kotak = Komponen.pilihan("Baru", "Diproses", "Selesai");
+        kotak.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
+        DefaultCellEditor editor = new DefaultCellEditor(kotak);
+        editor.setClickCountToStart(1);   // cukup satu klik
+        return editor;
     }
 
     // ===================== DATA =====================
@@ -165,22 +197,57 @@ public class LaporanFrame extends FrameDasar {
 
     /** Tombol Tampilkan: isi ulang kartu rekap dan tabel untuk tanggal yang dipilih. */
     private void muatLaporan() {
-        int indeks = cmbTanggal.getSelectedIndex();
-        LocalDate tanggal = indeks >= 0 && indeks < tanggalPilihan.size() ? tanggalPilihan.get(indeks) : null;
+        if (tabel.isEditing()) {
+            tabel.getCellEditor().cancelCellEditing();
+        }
+        muatRekap();
 
-        lblJumlah.setText(String.valueOf(LaporanRepository.hitungPesanan(tanggal)));
-        lblTotal.setText(Komponen.formatRupiah(LaporanRepository.hitungPenjualan(tanggal)));
-
+        LocalDate tanggal = tanggalTerpilih();
+        idBaris.clear();
+        statusBaris.clear();
         modelTabel.setRowCount(0);
         for (Object[] b : LaporanRepository.ambilRiwayat(tanggal)) {
+            idBaris.add((Integer) b[0]);
+            statusBaris.add(((String) b[5]).toUpperCase());
             modelTabel.addRow(new Object[]{
                 String.format("#%04d", (Integer) b[0]),
                 FORMAT_TANGGAL.format((LocalDate) b[1]),
                 b[2],
                 kapital((String) b[3]),
                 Komponen.formatRupiah((Double) b[4]),
-                b[5]
+                kapital((String) b[5])   // BARU -> Baru, supaya cocok dengan pilihan di editor
             });
+        }
+    }
+
+    /** Kartu Jumlah pesanan dan Total penjualan (Total hanya menghitung pesanan Selesai). */
+    private void muatRekap() {
+        LocalDate tanggal = tanggalTerpilih();
+        lblJumlah.setText(String.valueOf(LaporanRepository.hitungPesanan(tanggal)));
+        lblTotal.setText(Komponen.formatRupiah(LaporanRepository.hitungPenjualan(tanggal)));
+    }
+
+    private LocalDate tanggalTerpilih() {
+        int indeks = cmbTanggal.getSelectedIndex();
+        return indeks >= 0 && indeks < tanggalPilihan.size() ? tanggalPilihan.get(indeks) : null;
+    }
+
+    /** Dipanggil setelah status di tabel diubah: simpan ke database lalu segarkan total. */
+    private void simpanStatus(int baris) {
+        if (baris < 0 || baris >= idBaris.size()) {
+            return;
+        }
+        String statusBaru = String.valueOf(modelTabel.getValueAt(baris, KOLOM_STATUS)).toUpperCase();
+        if (statusBaru.equals(statusBaris.get(baris))) {
+            return;   // tidak ada perubahan
+        }
+        if (LaporanRepository.ubahStatus(idBaris.get(baris), statusBaru)) {
+            statusBaris.set(baris, statusBaru);
+            muatRekap();   // pesanan yang jadi Selesai ikut masuk Total penjualan
+        } else {
+            JOptionPane.showMessageDialog(this, "Status pesanan gagal diubah.",
+                    "Yummy Risol Manager", JOptionPane.ERROR_MESSAGE);
+            SwingUtilities.invokeLater(this::muatLaporan);   // kembalikan tampilan ke data database
         }
     }
 

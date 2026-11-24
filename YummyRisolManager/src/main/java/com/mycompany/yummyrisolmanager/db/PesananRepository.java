@@ -4,8 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,39 +45,6 @@ public class PesananRepository {
             System.out.println("Gagal hitung penjualan hari ini: " + e.getMessage());
         }
         return total;
-    }
-
-    /**
-     * Penjualan (status SELESAI) per hari untuk N hari terakhir.
-     * Indeks 0 = hari paling lama, indeks terakhir = hari ini.
-     */
-    public static int[] ambilPenjualanHarian(int jumlahHari) {
-        int[] hasil = new int[jumlahHari];
-        String sql = "SELECT DATE(tanggal), SUM(total_bayar) FROM pesanan "
-                + "WHERE status = 'SELESAI' "
-                + "AND DATE(tanggal) >= DATE_SUB(CURDATE(), INTERVAL ? DAY) "
-                + "GROUP BY DATE(tanggal)";
-
-        try (Connection k = Koneksi.getKoneksi();
-             PreparedStatement ps = k.prepareStatement(sql)) {
-            ps.setInt(1, jumlahHari - 1);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    isiHari(hasil, rs.getDate(1).toLocalDate(), rs.getInt(2));
-                }
-            }
-        } catch (SQLException e) {
-            System.out.println("Gagal ambil penjualan harian: " + e.getMessage());
-        }
-        return hasil;
-    }
-
-    private static void isiHari(int[] hasil, LocalDate tanggal, int nilai) {
-        long selisih = ChronoUnit.DAYS.between(tanggal, LocalDate.now());
-        int indeks = hasil.length - 1 - (int) selisih;
-        if (indeks >= 0 && indeks < hasil.length) {
-            hasil[indeks] = nilai;
-        }
     }
 
     /** Pesanan terbaru: tiap baris berisi {nama pelanggan, status}. */

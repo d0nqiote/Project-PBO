@@ -11,13 +11,11 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.text.NumberFormat;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import javax.swing.BoxLayout;
@@ -39,8 +37,6 @@ import com.mycompany.yummyrisolmanager.Menu;
 
 public class DashboardFrame extends JFrame {
 
-    private static final String[] NAMA_HARI = {"Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"};
-    private static final int JUMLAH_HARI_GRAFIK = 7;
     private static final int JUMLAH_PESANAN_TERBARU = 4;
 
     private final String peran;
@@ -63,8 +59,7 @@ public class DashboardFrame extends JFrame {
     private JLabel lblTotalPenjualan;
     private JLabel lblStokHampir;
 
-    // grafik dan tabel
-    private PanelGrafik panelGrafik;
+    // tabel
     private JTable tblPesananTerbaru;
     private DefaultTableModel modelTabel;
 
@@ -270,32 +265,7 @@ public class DashboardFrame extends JFrame {
     // ===================== GRAFIK & TABEL =====================
 
     private JPanel buatBagianBawahIsi() {
-        JPanel bawah = new JPanel(new GridBagLayout());
-        bawah.setOpaque(false);
-
-        GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.BOTH;
-        c.weighty = 1;
-
-        c.gridx = 0;
-        c.weightx = 0.6;
-        c.insets = new Insets(0, 0, 0, 8);
-        bawah.add(buatKartuGrafik(), c);
-
-        c.gridx = 1;
-        c.weightx = 0.4;
-        c.insets = new Insets(0, 8, 0, 0);
-        bawah.add(buatKartuTabel(), c);
-        return bawah;
-    }
-
-    private JPanel buatKartuGrafik() {
-        PanelBulat kartu = buatKartuBesar();
-        panelGrafik = new PanelGrafik();
-
-        kartu.add(buatLabel("Penjualan 7 hari terakhir", 16, Font.BOLD, Tema.COKELAT_GELAP), BorderLayout.NORTH);
-        kartu.add(panelGrafik, BorderLayout.CENTER);
-        return kartu;
+        return buatKartuTabel();
     }
 
     private JPanel buatKartuTabel() {
@@ -311,8 +281,6 @@ public class DashboardFrame extends JFrame {
         kartu.setBackground(Tema.PUTIH);
         kartu.setLayout(new BorderLayout(0, 12));
         kartu.setBorder(new EmptyBorder(20, 20, 20, 20));
-        // ukuran awal sama supaya perbandingan 60:40 pada GridBagLayout akurat
-        kartu.setPreferredSize(new Dimension(10, 10));
         return kartu;
     }
 
@@ -353,7 +321,6 @@ public class DashboardFrame extends JFrame {
     private void muatData() {
         muatKartu();
         muatBanner();
-        muatGrafik();
         muatTabel();
     }
 
@@ -369,11 +336,6 @@ public class DashboardFrame extends JFrame {
         panelBanner.setVisible(!menipis.isEmpty());
     }
 
-    private void muatGrafik() {
-        int[] nilai = PesananRepository.ambilPenjualanHarian(JUMLAH_HARI_GRAFIK);
-        panelGrafik.setData(buatLabelHari(JUMLAH_HARI_GRAFIK), nilai);
-    }
-
     private void muatTabel() {
         modelTabel.setRowCount(0);
         for (String[] baris : PesananRepository.ambilPesananTerbaru(JUMLAH_PESANAN_TERBARU)) {
@@ -383,15 +345,6 @@ public class DashboardFrame extends JFrame {
 
     private String buatTeksPeringatan(List<String> menipis) {
         return "Stok di bawah minimum: " + String.join(", ", menipis) + " – segera produksi ulang";
-    }
-
-    private String[] buatLabelHari(int jumlah) {
-        String[] label = new String[jumlah];
-        for (int i = 0; i < jumlah; i++) {
-            LocalDate tanggal = LocalDate.now().minusDays(jumlah - 1 - i);
-            label[i] = NAMA_HARI[tanggal.getDayOfWeek().getValue() - 1];
-        }
-        return label;
     }
 
     private String formatRupiah(double nilai) {

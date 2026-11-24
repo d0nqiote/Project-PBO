@@ -57,6 +57,25 @@ public class LaporanRepository {
         return daftar;
     }
 
+    /**
+     * Mengubah status satu pesanan (BARU, DIPROSES, atau SELESAI).
+     *
+     * @return true kalau baris berhasil diubah
+     */
+    public static boolean ubahStatus(int idPesanan, String status) {
+        String sql = "UPDATE pesanan SET status = ? WHERE id_pesanan = ?";
+
+        try (Connection k = Koneksi.getKoneksi();
+             PreparedStatement ps = k.prepareStatement(sql)) {
+            ps.setString(1, status.toUpperCase());
+            ps.setInt(2, idPesanan);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("Gagal ubah status pesanan: " + e.getMessage());
+            return false;
+        }
+    }
+
     /** Jumlah semua pesanan pada tanggal itu. */
     public static int hitungPesanan(LocalDate tanggal) {
         String sql = "SELECT COUNT(*) FROM pesanan" + (tanggal == null ? "" : " WHERE DATE(tanggal) = ?");
