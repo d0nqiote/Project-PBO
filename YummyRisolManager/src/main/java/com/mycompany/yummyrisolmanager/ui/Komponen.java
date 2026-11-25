@@ -10,6 +10,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.RenderingHints;
+import java.awt.geom.RoundRectangle2D;
 import java.text.NumberFormat;
 import java.util.Locale;
 import javax.swing.Box;
@@ -23,6 +24,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.border.AbstractBorder;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -43,6 +45,13 @@ public class Komponen {
     public static final Color WARNA_PILIH = new Color(0xF6E7D8);
 
     private static final int TINGGI_ISIAN = 38;
+
+    /** Jarak isi sel tabel dari tepi kolom (berlaku juga untuk judul kolom). */
+    private static final int JARAK_KIRI_SEL = 12;
+    private static final int JARAK_KANAN_SEL = 8;
+
+    /** Padding kiri-kanan di dalam Chip (lihat Chip.java). */
+    private static final int PADDING_CHIP = 10;
 
     // ===================== LABEL, TOMBOL, ISIAN =====================
 
@@ -191,7 +200,17 @@ public class Komponen {
 
     /** Jarak kiri-kanan sel dan garis tipis di bawah baris. */
     public static CompoundBorder borderBaris() {
-        return new CompoundBorder(new MatteBorder(0, 0, 1, 0, Tema.BORDER), new EmptyBorder(0, 8, 0, 8));
+        return new CompoundBorder(new MatteBorder(0, 0, 1, 0, Tema.BORDER),
+                new EmptyBorder(0, JARAK_KIRI_SEL, 0, JARAK_KANAN_SEL));
+    }
+
+    /**
+     * Sama seperti borderBaris(), tapi untuk sel yang diawali chip: jarak kiri dikurangi
+     * lebar padding chip, supaya TEKS di dalam chip sejajar dengan teks sel lain.
+     */
+    public static CompoundBorder borderBarisChip() {
+        return new CompoundBorder(new MatteBorder(0, 0, 1, 0, Tema.BORDER),
+                new EmptyBorder(0, JARAK_KIRI_SEL - PADDING_CHIP, 0, JARAK_KANAN_SEL));
     }
 
     public static String formatRupiah(double nilai) {
@@ -210,6 +229,7 @@ public class Komponen {
         public Component getTableCellRendererComponent(JTable tabel, Object nilai,
                 boolean terpilih, boolean fokus, int baris, int kolom) {
             super.getTableCellRendererComponent(tabel, ubah(nilai), false, false, baris, kolom);
+            setHorizontalAlignment(SwingConstants.LEFT);   // semua isi tabel rata kiri
             setBorder(borderBaris());
             setForeground(Tema.COKELAT_GELAP);
             setBackground(terpilih ? WARNA_PILIH : Tema.PUTIH);
@@ -231,7 +251,9 @@ public class Komponen {
             setFont(Tema.font(Font.BOLD, 12));
             setForeground(Tema.TEKS_ABU);
             setBackground(Tema.PUTIH);
-            setBorder(new CompoundBorder(new MatteBorder(0, 0, 2, 0, Tema.BORDER), new EmptyBorder(0, 8, 0, 8)));
+            setHorizontalAlignment(SwingConstants.LEFT);
+            setBorder(new CompoundBorder(new MatteBorder(0, 0, 2, 0, Tema.BORDER),
+                    new EmptyBorder(0, JARAK_KIRI_SEL, 0, JARAK_KANAN_SEL)));
             return this;
         }
     }
@@ -251,8 +273,11 @@ public class Komponen {
         public void paintBorder(Component c, Graphics g, int x, int y, int lebar, int tinggi) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            // garis 1px digambar di tengah piksel (+0.5) supaya keempat sisi sama tegas;
+            // tanpa ini sisi kiri dan atas terlihat pudar / seperti kepotong
+            g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
             g2.setColor(warna);
-            g2.drawRoundRect(x, y, lebar - 1, tinggi - 1, arc, arc);
+            g2.draw(new RoundRectangle2D.Double(x + 0.5, y + 0.5, lebar - 1, tinggi - 1, arc, arc));
             g2.dispose();
         }
 

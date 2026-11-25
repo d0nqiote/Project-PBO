@@ -27,6 +27,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -38,6 +39,9 @@ import com.mycompany.yummyrisolmanager.Menu;
 public class DashboardFrame extends JFrame {
 
     private static final int JUMLAH_PESANAN_TERBARU = 4;
+
+    /** Jarak kiri-kanan isi sel tabel "Pesanan terbaru". */
+    private static final int JARAK_SEL = 16;
 
     private final String peran;
 
@@ -305,9 +309,7 @@ public class DashboardFrame extends JFrame {
         tblPesananTerbaru.getColumnModel().getColumn(1).setCellRenderer(new RendererStatus());
 
         JTableHeader header = tblPesananTerbaru.getTableHeader();
-        header.setFont(Tema.font(Font.BOLD, 12));
-        header.setForeground(Tema.TEKS_ABU);
-        header.setBackground(Tema.PUTIH);
+        header.setDefaultRenderer(new RendererHeader());
         header.setReorderingAllowed(false);
 
         JScrollPane scroll = new JScrollPane(tblPesananTerbaru);
@@ -402,9 +404,32 @@ public class DashboardFrame extends JFrame {
         public Component getTableCellRendererComponent(JTable tabel, Object nilai,
                 boolean terpilih, boolean fokus, int baris, int kolom) {
             Component hasil = super.getTableCellRendererComponent(tabel, nilai, terpilih, fokus, baris, kolom);
-            setBorder(new MatteBorder(0, 0, 1, 0, Tema.BORDER));
+            setBorder(borderSel());
             setBackground(Tema.PUTIH);
             return hasil;
+        }
+    }
+
+    /** Garis tipis di bawah baris + jarak kiri-kanan supaya isi tidak menempel ke tepi kolom. */
+    private static CompoundBorder borderSel() {
+        return new CompoundBorder(new MatteBorder(0, 0, 1, 0, Tema.BORDER),
+                new EmptyBorder(0, JARAK_SEL, 0, JARAK_SEL));
+    }
+
+    /** Judul kolom: rata kiri dengan jarak yang sama seperti isi sel. */
+    private static class RendererHeader extends DefaultTableCellRenderer {
+
+        @Override
+        public Component getTableCellRendererComponent(JTable tabel, Object nilai,
+                boolean terpilih, boolean fokus, int baris, int kolom) {
+            super.getTableCellRendererComponent(tabel, nilai, false, false, baris, kolom);
+            setHorizontalAlignment(SwingConstants.LEFT);
+            setFont(Tema.font(Font.BOLD, 12));
+            setForeground(Tema.TEKS_ABU);
+            setBackground(Tema.PUTIH);
+            setBorder(new CompoundBorder(new MatteBorder(0, 0, 1, 0, Tema.BORDER),
+                    new EmptyBorder(0, JARAK_SEL, 0, JARAK_SEL)));
+            return this;
         }
     }
 
@@ -416,7 +441,7 @@ public class DashboardFrame extends JFrame {
 
         RendererStatus() {
             sel.setBackground(Tema.PUTIH);
-            sel.setBorder(new MatteBorder(0, 0, 1, 0, Tema.BORDER));
+            sel.setBorder(borderSel());
             sel.add(chip);
         }
 

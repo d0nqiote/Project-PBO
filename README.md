@@ -1,128 +1,114 @@
-# Yummy Risol Manager
+# 🥟 Yummy Risol Manager
 
 Aplikasi desktop manajemen penjualan untuk **Yummy Risol**, UMKM risol di daerah Jatinangor. Dibuat sebagai tugas besar mata kuliah **Pemrograman Berorientasi Objek (PBO)**.
+
+Aplikasi ini menggantikan pencatatan manual (pesanan, stok, data pelanggan, rekap penjualan) dengan sistem yang tersimpan di database MySQL.
 
 | Aspek | Keterangan |
 |---|---|
 | Mata kuliah | Pemrograman Berorientasi Objek (PBO) |
 | Tema | Bisnis UMKM di daerah Jatinangor |
-| UMKM | Yummy Risol |
-| Bahasa & GUI | Java, Swing |
-| IDE | NetBeans |
-| Database | MySQL |
+| Bahasa & GUI | Java, Swing (tampilan dibuat lewat kode, tanpa GUI Builder NetBeans) |
+| Tampilan | [FlatLaf](https://www.formdev.com/flatlaf/) 3.5.4 dengan tema oranye dan font Plus Jakarta Sans |
+| Database | MySQL (JDBC, `mysql-connector-j` 8.4.0) |
+| Build | Maven |
 
 ---
 
-## 1. Latar Belakang
+## ✨ Fitur
 
-UMKM kuliner kecil umumnya masih mencatat pesanan dan penjualan secara manual, sehingga rawan salah hitung dan sulit direkap. Dugaan awal masalah di Yummy Risol (akan dikonfirmasi saat wawancara pemilik):
+| Modul | Fitur | Admin | Kasir |
+|---|---|:-:|:-:|
+| Login | Masuk dengan username, password, dan pilihan peran | ✔ | ✔ |
+| Dashboard | Jumlah pesanan hari ini, total penjualan, jumlah produk stok hampir habis, banner peringatan stok, dan daftar pesanan terbaru | ✔ | ✔ |
+| Kelola Produk | Tambah, ubah, hapus, dan cari produk (nama atau rasa); atur harga, stok, dan stok minimum | ✔ | ✘ |
+| Kelola Pelanggan | Tambah, ubah, hapus, dan cari data pelanggan | ✔ | ✔ |
+| Buat Pesanan | Pilih pelanggan, produk, dan jumlah; total dihitung otomatis; pilih metode order (Langsung, WhatsApp, Titip) | ✔ | ✔ |
+| Laporan Penjualan | Riwayat pesanan, filter per tanggal, rekap jumlah pesanan dan total penjualan, ubah status pesanan (Baru, Diproses, Selesai) | ✔ | ✘ |
 
-- Pesanan dari banyak pelanggan sulit dilacak statusnya (baru, diproses, selesai).
-- Stok risol dan bahan tidak tercatat rapi, sehingga bisa habis tanpa terpantau.
-- Rekap penjualan harian atau mingguan memakan waktu karena dihitung manual.
-- Data pelanggan langganan tidak tersimpan, padahal berguna untuk pesanan berulang.
+Catatan perilaku:
+- Menu **Produk** dan **Laporan** di sidebar dinonaktifkan untuk Kasir.
+- Pesanan disimpan dalam **satu transaksi database**: pesanan, detail, dan pengurangan stok berhasil bersama atau dibatalkan bersama (rollback), misalnya saat stok tidak cukup.
+- **Total penjualan** hanya menghitung pesanan berstatus `SELESAI`.
+- Tombol **Batal** pada Buat Pesanan meminta konfirmasi bila form sudah berisi item.
 
-## 2. Tujuan
+---
 
-Mengganti pencatatan manual dengan sistem yang tersimpan di database dan mudah dipakai pemilik:
-
-- Mencatat pesanan dan transaksi dengan total harga otomatis.
-- Memantau stok produk dan menandai produk yang hampir habis.
-- Menyajikan rekap penjualan per hari tanpa hitung manual.
-- Menyimpan data pelanggan untuk pesanan berulang.
-- Menerapkan konsep PBO (class, inheritance, encapsulation, polymorphism) pada kasus usaha nyata.
-
-## 3. Fitur Utama
-
-| Modul | Fitur | Pengguna |
-|---|---|---|
-| Login | Masuk dengan username dan password | Admin, Kasir |
-| Produk | Tambah, ubah, hapus, cari produk; atur harga dan stok | Admin |
-| Pelanggan | Simpan dan cari data pelanggan | Admin, Kasir |
-| Pesanan | Buat pesanan, pilih produk dan jumlah, hitung total otomatis, ubah status | Admin, Kasir |
-| Laporan | Riwayat pesanan dan rekap penjualan per tanggal | Admin |
-
-Tambahan: peringatan stok hampir habis dan ringkasan penjualan hari ini di Dashboard.
-
-## 4. Gambaran Antarmuka (6 Layar)
-
-| Layar | Komponen Swing utama | Isi |
-|---|---|---|
-| Login | JFrame, JTextField, JPasswordField, JButton | Form masuk |
-| Dashboard | JFrame, JMenuBar, JButton | Navigasi ke semua modul dan ringkasan penjualan hari ini |
-| Kelola Produk | JTable, JTextField, JButton | Tabel produk dan form tambah, ubah, hapus |
-| Kelola Pelanggan | JTable, JTextField, JButton | Tabel pelanggan dan form data |
-| Buat Pesanan | JComboBox, JSpinner, JTable, JLabel | Pilih pelanggan dan produk, daftar item, total bayar |
-| Laporan Penjualan | JTable, JComboBox | Riwayat pesanan dan rekap per tanggal |
-
-## 5. Rancangan Kelas dan Penerapan PBO
-
-`Main` hanya memanggil `Menu`, dan setiap method mengerjakan satu tugas.
+## 🧱 Penerapan PBO
 
 ### Hierarki Produk (Inheritance + Polymorphism)
 
 ```
 Produk (abstrak)
- ├── RisolManis (abstrak)
- │     ├── RisolCoklat
- │     └── RisolMatcha
- └── RisolAsin (abstrak)
-       ├── RisolMayo
-       └── RisolRagout
+ ├── RisolManis (abstrak)       getJenis() = "MANIS"
+ │     ├── RisolCoklat          diskon 5% untuk 10 pcs ke atas
+ │     ├── RisolMatcha          beli 5 gratis 1
+ │     └── PaketManis           harga paket dari database
+ └── RisolAsin (abstrak)        getJenis() = "ASIN"
+       ├── RisolMayo            harga normal
+       ├── RisolRagout          diskon 10% untuk 20 pcs ke atas
+       └── PaketAsin            harga paket dari database
 ```
 
-Method `hitungHarga(int jumlah)` di-override pada tiap turunan (misalnya harga rasa tertentu berbeda, atau paket mendapat harga khusus). Pemanggilannya lewat tipe induk:
+Setiap rasa meng-override `hitungHarga(int jumlah)` dengan aturannya sendiri, lalu dipanggil lewat tipe induk:
 
 ```java
-Produk p = new RisolMatcha();
-double total = p.hitungHarga(3); // yang dijalankan versi RisolMatcha
+Produk p = new RisolMatcha(...);
+double total = p.hitungHarga(6); // 5 dibayar, 1 gratis
 ```
 
-### Hierarki Orang
+Aturan promo pada kode saat ini adalah contoh dan bisa disesuaikan dengan kebijakan pemilik.
 
-```
-Person (abstrak)  -> nama, noHp
- ├── Pelanggan    -> + alamat
- └── Karyawan     -> + jabatan
-```
+### Kelas lain
 
-### Daftar Kelas
-
-| Kelas | Atribut / Tugas | Konsep PBO |
+| Kelas | Peran | Konsep PBO |
 |---|---|---|
-| `Main` | Menjalankan aplikasi dan memanggil `Menu` | Entry point |
-| `Menu` | Mengatur perpindahan antar layar | Pemisahan tanggung jawab |
-| `Person` (abstrak) | nama, noHp | Inheritance (induk) |
-| `Pelanggan`, `Karyawan` | Turunan `Person`; tambah alamat atau jabatan | Inheritance |
-| `Produk` (abstrak) | idProduk, nama, harga, stok; getter dan setter | Encapsulation, Polymorphism |
-| `RisolManis`, `RisolAsin` | Perantara berdasarkan jenis | Inheritance bertingkat |
-| `RisolCoklat`, `RisolMatcha`, `RisolMayo`, `RisolRagout` | Override `hitungHarga()` | Polymorphism |
-| `Pesanan`, `DetailPesanan` | Menyimpan item dan menghitung total | Composition |
-| `Koneksi` | Membuka koneksi database | Abstraksi akses data |
+| `Person` (abstrak) | `nama`, `noHp` | Inheritance, encapsulation |
+| `Pelanggan` | Turunan `Person`, ditambah `alamat` | Inheritance |
+| `Produk` | Atribut `private` dengan getter/setter dan validasi (harga dan stok tidak boleh negatif) | Encapsulation |
+| `ProdukFactory` | Membuat objek turunan `Produk` yang tepat dari baris tabel (berdasarkan kolom `rasa` dan `jenis`) | Factory |
+| `Pesanan`, `DetailPesanan` | Pesanan memiliki daftar item dan menghitung total | Composition |
+| `FrameDasar` (abstrak) | Kerangka layar (sidebar + area isi) yang diwarisi `ProdukFrame`, `PelangganFrame`, `PesananFrame`, `LaporanFrame` | Inheritance, reuse |
+| `Menu` | Mengatur tema global dan perpindahan antar layar | Pemisahan tanggung jawab |
+| `db/*Repository` | Seluruh query SQL dipisah dari UI | Pemisahan lapisan |
+| `Koneksi` | Membuka koneksi JDBC | Abstraksi akses data |
 
-> Di database, hierarki produk cukup disimpan lewat kolom `jenis` (MANIS/ASIN) dan `rasa`. Tidak perlu satu tabel per kelas turunan. Kelas Java yang membuat objek yang sesuai dari isi kolom tersebut.
+---
 
-## 6. Rancangan Database
+## 📁 Struktur Proyek
 
-Database `yummy_risol` memiliki 5 tabel (melebihi syarat minimal 3 tabel). Skrip lengkap beserta data contoh ada di [`yummy_risol.sql`](yummy_risol.sql).
+```
+.
+├── README.md
+├── yummy_risol.sql                       # database + data contoh
+└── YummyRisolManager/
+    ├── pom.xml
+    └── src/main/
+        ├── java/com/mycompany/yummyrisolmanager/
+        │   ├── YummyRisolManager.java    # main(), hanya memanggil Menu
+        │   ├── Menu.java                 # tema global + perpindahan layar
+        │   ├── model/                    # Produk & turunannya, Person, Pelanggan, Pesanan, DetailPesanan
+        │   ├── db/                       # Koneksi + repository per tabel
+        │   └── ui/                       # LoginFrame, DashboardFrame, Produk/Pelanggan/Pesanan/LaporanFrame,
+        │                                 # PanelSidebar, Komponen, Tema, dan komponen kustom
+        └── resources/fonts/              # Plus Jakarta Sans dan Poppins
+```
+
+---
+
+## 🗄️ Database
+
+Nama database: **`yummy_risol`** (skrip lengkap ada di `yummy_risol.sql`).
 
 | Tabel | Kolom | Keterangan |
 |---|---|---|
-| `pengguna` | id_pengguna (PK), nama, username, password, jabatan | Akun login (ADMIN / KASIR) |
-| `produk` | id_produk (PK), nama_produk, jenis, rasa, tipe, isi, harga, stok, stok_minimum | Daftar risol dan paket |
-| `pelanggan` | id_pelanggan (PK), nama, no_hp, alamat | Data pembeli |
-| `pesanan` | id_pesanan (PK), id_pelanggan (FK), id_pengguna (FK), tanggal, metode_order, status, total_bayar | Satu baris per transaksi |
-| `detail_pesanan` | id_detail (PK), id_pesanan (FK), id_produk (FK), jumlah, subtotal | Item di dalam pesanan |
-
-Relasi:
-
-- `pelanggan` 1 — N `pesanan`
-- `pengguna` 1 — N `pesanan` (pencatat transaksi)
-- `pesanan` 1 — N `detail_pesanan`
-- `produk` 1 — N `detail_pesanan`
+| `pengguna` | `id_pengguna` (PK), `nama`, `username`, `password`, `jabatan` | Akun login; `jabatan` bernilai `ADMIN` atau `KASIR` |
+| `produk` | `id_produk` (PK), `nama_produk`, `jenis`, `rasa`, `tipe`, `isi`, `harga`, `stok`, `stok_minimum` | Daftar risol dan paket |
+| `pelanggan` | `id_pelanggan` (PK), `nama`, `no_hp`, `alamat` | Data pembeli |
+| `pesanan` | `id_pesanan` (PK), `id_pelanggan` (FK), `id_pengguna` (FK), `tanggal`, `metode_order`, `status`, `total_bayar` | Satu baris per transaksi |
+| `detail_pesanan` | `id_detail` (PK), `id_pesanan` (FK), `id_produk` (FK), `jumlah`, `subtotal` | Item di dalam pesanan |
 
 Nilai kolom enum:
-
 - `produk.jenis`: `MANIS`, `ASIN`
 - `produk.tipe`: `SATUAN`, `PAKET`
 - `pesanan.metode_order`: `LANGSUNG`, `WHATSAPP`, `TITIP`
@@ -130,13 +116,69 @@ Nilai kolom enum:
 
 ```mermaid
 erDiagram
-    PENJUAL ||--o{ PESANAN : mencatat
+    PENGGUNA ||--o{ PESANAN : mencatat
     PELANGGAN ||--o{ PESANAN : memesan
     PESANAN ||--|{ DETAIL_PESANAN : berisi
     PRODUK ||--o{ DETAIL_PESANAN : dipesan
 ```
 
-## 7. Anggota Kelompok
+Hierarki produk di Java disimpan di database hanya lewat kolom `jenis` dan `rasa`; tidak ada tabel per kelas turunan.
+
+---
+
+## 🚀 Cara Menjalankan
+
+### Prasyarat
+- **JDK 26** (sesuai `maven.compiler.release` di `pom.xml`). Jika memakai JDK lebih lama, turunkan nilai tersebut di `pom.xml`.
+- Maven (atau NetBeans, yang sudah menyertakan Maven)
+- MySQL / MariaDB aktif di `localhost:3306` (misalnya lewat XAMPP atau Laragon)
+
+### Langkah
+
+1. **Clone repositori**
+   ```bash
+   git clone https://github.com/d0nqiote/Project-PBO.git
+   cd Project-PBO/YummyRisolManager
+   ```
+
+2. **Import database.** File `yummy_risol.sql` sudah berisi pembuatan database, semua tabel, dan data contoh (produk, pelanggan, pesanan, dan akun login). Di HeidiSQL pilih *File → Run SQL file*, atau lewat terminal:
+   ```bash
+   mysql -u root -p < ../yummy_risol.sql
+   ```
+
+   Akun login bawaan:
+
+   | Peran | Username | Password |
+   |---|---|---|
+   | Admin | `admin` | `admin123` |
+   | Kasir | `kasir` | `kasir123` |
+
+3. **Sesuaikan koneksi** di `src/main/java/com/mycompany/yummyrisolmanager/db/Koneksi.java` bila perlu:
+   ```java
+   private static final String URL = "jdbc:mysql://localhost:3306/yummy_risol";
+   private static final String USER = "root";
+   private static final String PASSWORD = "";
+   ```
+
+4. **Jalankan aplikasi**
+   ```bash
+   mvn compile exec:java -Dexec.mainClass=com.mycompany.yummyrisolmanager.YummyRisolManager
+   ```
+   Atau buka folder `YummyRisolManager` di NetBeans lalu jalankan (Run Project).
+
+5. **Login** dengan username, password, dan peran (`Admin` atau `Kasir`) yang sesuai dengan data di tabel `pengguna`.
+
+---
+
+## ⚠️ Catatan
+
+- Password di tabel `pengguna` saat ini dicek sebagai teks biasa. Untuk pemakaian nyata, simpan dalam bentuk hash (misalnya BCrypt).
+- Kredensial database ditulis langsung di `Koneksi.java`. Jangan commit password asli.
+- Seluruh query memakai `PreparedStatement` sehingga aman dari SQL injection.
+
+---
+
+## 👥 Anggota Kelompok
 
 | Nama | NPM |
 |---|---|

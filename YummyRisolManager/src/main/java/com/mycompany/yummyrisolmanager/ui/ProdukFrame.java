@@ -359,7 +359,8 @@ public class ProdukFrame extends FrameDasar {
                 boolean terpilih, boolean fokus, int baris, int kolom) {
             panel.removeAll();
             panel.setBackground(terpilih ? Komponen.WARNA_PILIH : Tema.PUTIH);
-            panel.setBorder(Komponen.borderBaris());
+            // kolom stok diawali angka (teks biasa); kolom jenis diawali chip, jaraknya disesuaikan
+            panel.setBorder(untukStok ? Komponen.borderBaris() : Komponen.borderBarisChip());
 
             if (untukStok) {
                 angka.setText(String.valueOf(nilai));
