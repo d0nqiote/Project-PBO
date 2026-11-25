@@ -15,10 +15,6 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
-/**
- * Mengatur tampilan global dan perpindahan antar layar.
- * Main hanya memanggil class ini.
- */
 public class Menu {
 
     public void mulai() {
@@ -26,10 +22,6 @@ public class Menu {
         SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
     }
 
-    /**
-     * Membuka layar "layar" lalu menutup layar asal.
-     * Layar yang belum dibuat hanya menampilkan pesan dan layar asal tetap terbuka.
-     */
     public static void pindahKe(String layar, String peran, JFrame asal) {
         JFrame tujuan = switch (layar) {
             case "Dashboard" -> new DashboardFrame(peran);
